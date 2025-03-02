@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Чек</title>
+    <style>
+        body {
+            font-family: monospace;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+            width: 58mm;
+            text-align: left;
+        }
+
+        .container {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .header p {
+            margin: 2px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .item {
+            width: 100%;
+            text-align: left;
+            text-transform: uppercase;
+            font-weight: normal;
+        }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .total {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .centered {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .right-aligned {
+            float: right;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .footer .separator {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <p>ООО "КОМПАНИЯ К"</p>
+            <p>Добро пожаловать</p>
+            <p>ККМ 00075411          #3969</p>
+            <p>ИНН 1087746942040</p>
+            <p>ЭКЛЗ 3851495566</p>
+            <p>{{ created_at }} СИС.</p>
+            <p>АДМИ</p>
+            <br>
+        </div>
+
+        <!-- Детали товаров -->
+        <div class="receipt-details">
+            {% for item in items %}
+                <div class="item-details">
+                    <span class="item">{{ item.title }}</span>
+                    <span class="right-aligned">{{ "%.2f" % item.price }}</span>
+                </div>
+                <div class="item-details">
+                    <span>{{ item.quantity }}</span>
+                    <span class="right-aligned">={{ "%.2f" % (item.price * item.quantity) }}</span>
+                </div>
+                <br>
+            {% endfor %}
+        </div>
+
+        <!-- Итог -->
+        <div class="total">
+            <span><b>ИТОГ</b></span>
+        </div>
+
+        <!-- Сумма по центру -->
+        <div class="centered">
+            <b>{{ "%.2f" % total_price }}</b>
+        </div>
+
+        <!-- Оплата наличными -->
+        <div class="total">
+            <span>НАЛИЧНЫМИ</span>
+            <span class="right-aligned">={{ "%.2f" % total_price }}</span>
+        </div>
+
+        <!-- Разделительная линия и футер -->
+        <div class="footer">
+            <div class="separator">**********************</div>
+            <p>00003751# 05970</p>
+        </div>
+    </div>
+</body>
+</html>
