@@ -1,12 +1,12 @@
+import base64
 import os
 from datetime import datetime
 from decimal import Decimal
-from io import BytesIO
 
 import pdfkit
 import qrcode
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.views import View
 from jinja2 import FileSystemLoader, Environment
 from rest_framework import generics, status
@@ -53,8 +53,8 @@ class GenerateReceiptView(APIView):
             # Генерируем PDF из HTML
             pdf = pdfkit.from_string(html, False)
 
-            # Путь к директории для сохранения чека
-            receipts_dir = settings.MEDIA_ROOT  # Сохраняем в папку media
+            # Директория для сохранения чеков
+            receipts_dir = settings.MEDIA_ROOT
 
             # Сохраняем PDF файл
             filename = f"receipt_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
@@ -62,32 +62,17 @@ class GenerateReceiptView(APIView):
             with open(receipt_path, 'wb') as f:
                 f.write(pdf)
 
-            # Генерация QR-кода с полным URL на чек
-            receipt_url = f'{settings.SITE_URL}/media/{filename}'
+            qr_code_filename = f"qr_{filename}.png"
+            qr_code_path = os.path.join(receipts_dir, qr_code_filename)
+
+            # Генерация QR-кода с ссылкой на чек
+            receipt_url = f"{settings.SITE_URL}{settings.MEDIA_URL}{filename}"
             qr_code = qrcode.make(receipt_url)
+            qr_code.save(qr_code_path)
 
-            qr_code_image = BytesIO()
-            qr_code.save(qr_code_image, 'PNG')
-            qr_code_image.seek(0)
-
-            # Путь для сохранения QR-кода в папку media
-            qr_code_filename = f'qr_{filename}.png'
-            qr_code_path = os.path.join(settings.MEDIA_ROOT, qr_code_filename)
-
-            # Сохраняем QR-код в файл
-            with open(qr_code_path, 'wb') as f:
-                f.write(qr_code_image.getvalue())
-
-            # Возвращаем сам QR-код в качестве изображения в ответе
-            return HttpResponse(qr_code_image, content_type="image/png")
+            return FileResponse(open(qr_code_path, 'rb'), content_type="image/png")
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, *args, **kwargs):
-        # Возвращаем сообщение, чтобы использовать POST метод
-        return Response({
-            "message": "Please use POST method to generate receipt."
-        }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class ServeReceiptFile(View):
